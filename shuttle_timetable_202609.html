@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>중계정상어학원 셔틀 전체 시간표</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --sky:#e8f4fd;--sky-mid:#bfdffa;--sky-deep:#7ec2f5;
+  --blue:#4a9fd4;--blue-dark:#2d7bb8;--navy:#2c5f8a;
+  --text:#1e3a52;--text-mid:#4a6880;--text-light:#7a9ab5;
+  --white:#ffffff;--bg:#f0f7fd;--border:#d4e8f7;
+  --green:#2ea87a;--green-light:#e8f8f2;
+  --amber:#d97706;--amber-light:#fffbeb;
+}
+body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--text); font-size:14px; -webkit-font-smoothing:antialiased; }
+
+.header { background:linear-gradient(135deg,var(--blue),var(--navy)); padding:26px 20px 22px; text-align:center; }
+.header-label { display:inline-block; font-size:11px; font-weight:700; letter-spacing:2px; color:rgba(255,255,255,0.65); text-transform:uppercase; margin-bottom:8px; }
+.header h1 { font-size:clamp(1.2rem,4vw,1.6rem); font-weight:900; color:#fff; letter-spacing:-0.3px; }
+.header-date { margin-top:6px; font-size:11.5px; color:rgba(255,255,255,0.65); }
+
+.notice { background:var(--sky); border-bottom:1px solid var(--border); padding:14px 20px; }
+.notice-inner { max-width:900px; margin:0 auto; }
+.notice-title { font-size:11px; font-weight:800; letter-spacing:1.5px; color:var(--blue-dark); text-transform:uppercase; margin-bottom:8px; }
+.notice-row { display:flex; align-items:baseline; gap:8px; padding:4px 0; font-size:12.5px; color:var(--text-mid); line-height:1.6; }
+
+.dir-bar { background:var(--white); border-bottom:1px solid var(--border); padding:0 20px; position:sticky; top:0; z-index:20; }
+.dir-list { display:flex; max-width:900px; margin:0 auto; gap:4px; padding:8px 0; }
+.dir-btn { flex:1; padding:9px; border-radius:10px; border:1.5px solid var(--border); background:var(--bg); font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; color:var(--text-light); transition:all .15s; }
+.dir-btn.on { background:linear-gradient(135deg,var(--blue),var(--navy)); border-color:var(--navy); color:#fff; }
+
+.dir-panel { display:none; }
+.dir-panel.on { display:block; }
+
+.tab-bar { background:var(--white); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; position:sticky; top:41px; z-index:10; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+.tab-bar::-webkit-scrollbar { display:none; }
+.tab-list { display:flex; max-width:900px; margin:0 auto; padding:0 12px; }
+.tab { flex-shrink:0; background:none; border:none; border-bottom:2px solid transparent; padding:13px 15px 11px; font-family:'Noto Sans KR',sans-serif; font-size:13px; font-weight:600; color:var(--text-light); cursor:pointer; transition:color .15s,border-color .15s; white-space:nowrap; }
+.tab:hover { color:var(--navy); }
+.tab.on { color:var(--navy); font-weight:800; border-bottom-color:var(--blue); }
+
+.main { max-width:900px; margin:0 auto; padding:24px 16px 60px; }
+.section { display:none; }
+.section.on { display:block; }
+
+.car-title { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.car-num { font-size:11px; font-weight:800; letter-spacing:1.5px; color:var(--text-light); }
+.car-name { font-size:1.1rem; font-weight:800; color:var(--navy); }
+.car-driver { margin-left:auto; font-size:12px; color:var(--text-mid); font-weight:600; }
+
+.tbl-wrap { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:10px; box-shadow:0 2px 12px rgba(44,95,138,0.08); }
+table { width:100%; border-collapse:collapse; }
+.tbl-wrap-scroll { overflow-x:auto; }
+thead tr.gh th { padding:8px 8px; font-size:11px; font-weight:800; letter-spacing:0.5px; text-align:center; }
+thead tr.gh th.g-stop { background:var(--sky); color:var(--navy); text-align:left; padding-left:14px; }
+thead tr.gh th.g-mwf { background:var(--navy); color:rgba(255,255,255,0.95); }
+thead tr.gh th.g-tth { background:var(--amber); color:rgba(255,255,255,0.95); }
+thead tr.sh th { padding:6px 8px; font-size:11px; font-weight:700; text-align:center; border-bottom:1px solid var(--border); }
+thead tr.sh th.s-stop { background:var(--sky); color:var(--text-light); text-align:left; padding-left:14px; }
+thead tr.sh th.s-mwf { background:#e4effc; color:var(--blue-dark); }
+thead tr.sh th.s-tth { background:var(--amber-light); color:var(--amber); }
+tbody tr { border-bottom:1px solid #f1f5fb; }
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover td { background:var(--sky) !important; }
+td { padding:9px 8px; font-size:12.5px; text-align:center; white-space:nowrap; }
+td.n { width:26px; color:#a9c3d8; font-size:11px; font-weight:700; }
+td.stop { text-align:left; padding-left:14px; font-size:13px; color:var(--text); font-weight:600; white-space:normal; min-width:130px; }
+td.mwf { color:var(--blue-dark); }
+td.tth { color:#b45309; font-weight:600; }
+tr.arr td, tr.dep td { background:var(--green-light); font-weight:800; font-size:12px; }
+tr.arr td.stop, tr.dep td.stop { color:var(--green); }
+tr.arr td.mwf, tr.dep td.mwf { color:var(--green); }
+tr.arr td.tth, tr.dep td.tth { color:var(--green); }
+
+.contacts { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:14px; background:var(--white); border:1px solid var(--border); border-top:none; border-radius:0 0 14px 14px; margin-bottom:32px; }
+.ct { background:var(--bg); border-radius:10px; padding:10px 12px; }
+.ct-role { font-size:10.5px; font-weight:700; margin-bottom:4px; }
+.ct-role.d { color:var(--navy); }
+.ct-role.m { color:var(--blue-dark); }
+.ct-role.t { color:var(--amber); }
+.ct-num { font-size:13px; font-weight:800; color:var(--text); letter-spacing:-0.3px; }
+.ct-num a { color:inherit; text-decoration:none; }
+.ct-num a:hover { text-decoration:underline; }
+
+.footer { text-align:center; font-size:11.5px; color:var(--text-light); padding:24px 16px; border-top:1px solid var(--border); background:white; }
+
+@media(max-width:560px){
+  td,th{font-size:11px !important;padding:7px 3px !important;}
+  td.stop,th.g-stop,th.s-stop{padding-left:8px !important;font-size:11.5px !important;}
+  .contacts{grid-template-columns:1fr 1fr;}
+  .tab{padding:12px 11px 10px;font-size:12px;}
+}
+.notice-row .dash { flex-shrink:0; color:var(--text-light); font-weight:700; }
+.notice-row .hl { color:#dc2626; font-weight:800; font-style:normal; }
+
+/* 변경된 시간: 색으로만 강조 (줄바꿈 없음) */
+td.chg { color:#dc2626 !important; font-weight:900; }
+tr.chg-row td.stop { color:#dc2626; font-weight:800; }
+td.chg sup { font-size:9px; font-weight:900; color:#dc2626; margin-left:1px; }
+.tbl-note { padding:8px 14px 10px; font-size:10.5px; line-height:1.5; color:var(--text-mid); background:#fff6f6; border-top:1px solid #fbe0e0; }
+.tbl-note b { color:#dc2626; font-weight:800; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">중계정상어학원</div>
+  <h1>9월 셔틀 시간표</h1>
+  <div class="header-date">26.08.27 기준</div>
+</div>
+
+<div class="notice">
+  <div class="notice-inner">
+    <div class="notice-title">셔틀 이용 안내</div>
+    <div class="notice-row"><span class="dash">-</span><span><em class="hl">1코드 한신청구아파트</em> 정류장은 탑승 인원 조정을 위해 9월부터 임시로 3호차에서 <em class="hl">5호차</em>로 변경 운영됩니다.</span></div>
+    <div class="notice-row"><span class="dash">-</span><span>안전하고 효율적인 운행을 위해 지정된 위치에서만 탑승이 가능하며, 탑승 시간 5분 전 미리 대기 부탁드립니다.</span></div>
+    <div class="notice-row"><span class="dash">-</span><span>탑승 지점 확인을 위해 사전에 셔틀기사님/선생님과 통화하여 정확한 시간 및 위치를 안내 받으시길 바랍니다.</span></div>
+    <div class="notice-row"><span class="dash">-</span><span>학원 미탑승시 정상셔틀 앱에서 '안타요' 기능을 이용해주세요.</span></div>
+  </div>
+</div>
+
+<div class="dir-bar">
+  <div class="dir-list">
+    <button class="dir-btn on" onclick="switchDir('dong')">🏫 등원 (학원 가는 버스)</button>
+    <button class="dir-btn" onclick="switchDir('haw')">🏠 하원 (집에 가는 버스)</button>
+  </div>
+</div>
+
+
+<div class="dir-panel on" id="dir-dong">
+  <div class="tab-bar">
+    <div class="tab-list"><button class='tab on' onclick="go('dong',0)">1호차</button><button class='tab' onclick="go('dong',1)">2호차</button><button class='tab' onclick="go('dong',2)">3호차</button><button class='tab' onclick="go('dong',3)">5호차</button><button class='tab' onclick="go('dong',4)">6호차</button><button class='tab' onclick="go('dong',5)">7호차</button><button class='tab' onclick="go('dong',6)">8호차</button><button class='tab' onclick="go('dong',7)">9호차</button></div>
+  </div>
+  <div class="main">
+<div class="section on" id="dong-s0">
+  <div class="car-title"><div><div class="car-num">차량 00</div><div class="car-name">중계 1호차</div></div><div class="car-driver">김성용 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>롯데캐슬 시그니처</td><td class='mwf'>13:55</td><td class='mwf'>15:10</td><td class='mwf'>16:55</td><td class='mwf'>18:35</td><td class='tth'>15:05</td><td class='tth'>17:40</td></tr><tr><td class='n'>2</td><td class='stop'>불암대림아파트 건너편</td><td class='mwf'>13:58</td><td class='mwf'>15:12</td><td class='mwf'>16:57</td><td class='mwf'>18:40</td><td class='tth'>15:07</td><td class='tth'>17:42</td></tr><tr><td class='n'>3</td><td class='stop'>수암약국 건너편</td><td class='mwf'>14:00</td><td class='mwf'>15:15</td><td class='mwf'>16:59</td><td class='mwf'>18:42</td><td class='tth'>15:08</td><td class='tth'>17:42</td></tr><tr><td class='n'>4</td><td class='stop'>중계 염광/현대A 입구</td><td class='mwf'>14:03</td><td class='mwf'>15:17</td><td class='mwf'>16:59</td><td class='mwf'>18:43</td><td class='tth'>15:09</td><td class='tth'>17:44</td></tr><tr><td class='n'>5</td><td class='stop'>중계벽산A(재활용센터)</td><td class='mwf'>14:04</td><td class='mwf'>15:17</td><td class='mwf'>17:00</td><td class='mwf'>18:45</td><td class='tth'>15:10</td><td class='tth'>17:45</td></tr><tr><td class='n'>6</td><td class='stop'>우성3차A</td><td class='mwf'>14:04</td><td class='mwf'>15:18</td><td class='mwf'>17:02</td><td class='mwf'>18:48</td><td class='tth'>15:11</td><td class='tth'>17:47</td></tr><tr><td class='n'>7</td><td class='stop'>중계 청구3차A</td><td class='mwf'>14:05</td><td class='mwf'>15:20</td><td class='mwf'>17:04</td><td class='mwf'>18:50</td><td class='tth'>15:13</td><td class='tth'>17:50</td></tr><tr><td class='n'>8</td><td class='stop'>신안동진A 앞</td><td class='mwf'>14:07</td><td class='mwf'>15:22</td><td class='mwf'>17:06</td><td class='mwf'>18:51</td><td class='tth'>15:14</td><td class='tth'>17:52</td></tr><tr><td class='n'>9</td><td class='stop'>노원문화예술원</td><td class='mwf'>14:08</td><td class='mwf'>15:23</td><td class='mwf'>17:08</td><td class='mwf'>18:52</td><td class='tth'>15:15</td><td class='tth'>17:52</td></tr><tr><td class='n'>10</td><td class='stop'>중계어린이집</td><td class='mwf'>14:09</td><td class='mwf'>15:23</td><td class='mwf'>17:08</td><td class='mwf'>18:53</td><td class='tth'>15:16</td><td class='tth'>17:53</td></tr><tr><td class='n'>11</td><td class='stop'>불암고</td><td class='mwf'>14:09</td><td class='mwf'>15:24</td><td class='mwf'>17:09</td><td class='mwf'>18:54</td><td class='tth'>15:17</td><td class='tth'>17:54</td></tr><tr><td class='n'>12</td><td class='stop'>대림벽산 버스정류장</td><td class='mwf'>14:10</td><td class='mwf'>15:26</td><td class='mwf'>17:10</td><td class='mwf'>18:55</td><td class='tth'>15:19</td><td class='tth'>17:56</td></tr><tr><td class='n'>13</td><td class='stop'>롯데우성A(꿈동산어린이집)</td><td class='mwf'>14:12</td><td class='mwf'>15:28</td><td class='mwf'>17:11</td><td class='mwf'>18:57</td><td class='tth'>15:22</td><td class='tth'>17:58</td></tr><tr><td class='n'>14</td><td class='stop'>하계현대 2차아파트</td><td class='mwf'>14:13</td><td class='mwf'>15:30</td><td class='mwf'>17:13</td><td class='mwf'>18:58</td><td class='tth'>15:24</td><td class='tth'>18:00</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:25</td><td class='mwf'>15:42</td><td class='mwf'>17:25</td><td class='mwf'>19:03</td><td class='tth'>15:35</td><td class='tth'>18:05</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01052301884">010-5230-1884</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01030080498">010-3008-0498</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01033701836">010-3370-1836</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s1">
+  <div class="car-title"><div><div class="car-num">차량 01</div><div class="car-name">중계 2호차</div></div><div class="car-driver">김왕건 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>상계주공 11단지 1112동 앞 CU편의점</td><td class='mwf'>13:48</td><td class='mwf'>15:03</td><td class='mwf'>16:48</td><td class='mwf'>18:28</td><td class='tth'>14:53</td><td class='tth'>17:35</td></tr><tr><td class='n'>2</td><td class='stop'>마들역(상계주공 11단지 후문)</td><td class='mwf'>13:50</td><td class='mwf'>15:05</td><td class='mwf'>16:50</td><td class='mwf'>18:30</td><td class='tth'>14:55</td><td class='tth'>17:37</td></tr><tr><td class='n'>3</td><td class='stop'>상원초등학교</td><td class='mwf'>13:52</td><td class='mwf'>15:07</td><td class='mwf'>16:52</td><td class='mwf'>18:32</td><td class='tth'>14:57</td><td class='tth'>17:40</td></tr><tr><td class='n'>4</td><td class='stop'>온곡초등학교(정문)</td><td class='mwf'>13:55</td><td class='mwf'>15:10</td><td class='mwf'>16:55</td><td class='mwf'>18:35</td><td class='tth'>15:03</td><td class='tth'>17:42</td></tr><tr><td class='n'>5</td><td class='stop'>상곡초등학교</td><td class='mwf'>14:00</td><td class='mwf'>15:15</td><td class='mwf'>16:59</td><td class='mwf'>18:40</td><td class='tth'>15:07</td><td class='tth'>17:45</td></tr><tr><td class='n'>6</td><td class='stop'>꽃동산교회(맞은편)</td><td class='mwf'>14:05</td><td class='mwf'>15:20</td><td class='mwf'>17:05</td><td class='mwf'>18:45</td><td class='tth'>15:12</td><td class='tth'>17:50</td></tr><tr><td class='n'>7</td><td class='stop'>코오롱아파트 건너편</td><td class='mwf'>14:07</td><td class='mwf'>15:24</td><td class='mwf'>17:07</td><td class='mwf'>18:46</td><td class='tth'>15:14</td><td class='tth'>17:52</td></tr><tr><td class='n'>8</td><td class='stop'>양지대림A(201동)</td><td class='mwf'>14:09</td><td class='mwf'>15:26</td><td class='mwf'>17:08</td><td class='mwf'>18:48</td><td class='tth'>15:16</td><td class='tth'>17:54</td></tr><tr><td class='n'>9</td><td class='stop'>중계성원A(을지중학교)</td><td class='mwf'>14:11</td><td class='mwf'>15:28</td><td class='mwf'>17:10</td><td class='mwf'>18:48</td><td class='tth'>15:18</td><td class='tth'>17:56</td></tr><tr><td class='n'>10</td><td class='stop'>상명초등학교</td><td class='mwf'>14:15</td><td class='mwf'>15:30</td><td class='mwf'>17:12</td><td class='mwf'>18:50</td><td class='tth'>15:20</td><td class='tth'>17:58</td></tr><tr><td class='n'>11</td><td class='stop'>청계초등학교(구. 고운유치원)</td><td class='mwf'>14:15</td><td class='mwf'>15:32</td><td class='mwf'>17:14</td><td class='mwf'>18:52</td><td class='tth'>15:22</td><td class='tth'>18:00</td></tr><tr><td class='n'>12</td><td class='stop'>무지개A(212동옆 횡단보도)</td><td class='mwf'>14:17</td><td class='mwf'>15:34</td><td class='mwf'>17:16</td><td class='mwf'>18:55</td><td class='tth'>15:24</td><td class='tth'>18:02</td></tr><tr><td class='n'>13</td><td class='stop'>용동초등학교(버스정류장)</td><td class='mwf'>14:19</td><td class='mwf'>15:36</td><td class='mwf'>17:20</td><td class='mwf'>18:55</td><td class='tth'>15:26</td><td class='tth'>18:04</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:25</td><td class='mwf'>15:45</td><td class='mwf'>17:25</td><td class='mwf'>19:03</td><td class='tth'>15:35</td><td class='tth'>18:10</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01036363722">010-3636-3722</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01090973168">010-9097-3168</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01054346948">010-5434-6948</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s2">
+  <div class="car-title"><div><div class="car-num">차량 02</div><div class="car-name">중계 3호차</div></div><div class="car-driver">김현국 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>신안아파트3차(103동 앞)</td><td class='mwf'>14:00</td><td class='mwf'>15:15</td><td class='mwf'>16:50</td><td class='mwf'>18:30</td><td class='tth'>15:00</td><td class='tth'>17:30</td></tr><tr><td class='n'>2</td><td class='stop'>먹골역1번출구(파리바게트)</td><td class='mwf'>14:02</td><td class='mwf'>15:17</td><td class='mwf'>16:52</td><td class='mwf'>18:32</td><td class='tth'>15:02</td><td class='tth'>17:32</td></tr><tr><td class='n'>3</td><td class='stop'>묵동자이아파트(말동상 맞은편 이디야)</td><td class='mwf'>14:03</td><td class='mwf'>15:19</td><td class='mwf'>16:53</td><td class='mwf'>18:33</td><td class='tth'>15:03</td><td class='tth'>17:33</td></tr><tr><td class='n'>4</td><td class='stop'>태릉입구역(5번출구)</td><td class='mwf'>14:07</td><td class='mwf'>15:24</td><td class='mwf'>17:00</td><td class='mwf'>18:37</td><td class='tth'>15:07</td><td class='tth'>17:37</td></tr><tr><td class='n'>5</td><td class='stop'>태릉역 신한은행</td><td class='mwf'>14:09</td><td class='mwf'>15:24</td><td class='mwf'>17:02</td><td class='mwf'>18:38</td><td class='tth'>15:08</td><td class='tth'>17:38</td></tr><tr><td class='n'>6</td><td class='stop'>공릉역 1번출구(던킨도너츠)</td><td class='mwf'>14:13</td><td class='mwf'>15:27</td><td class='mwf'>17:04</td><td class='mwf'>18:40</td><td class='tth'>15:10</td><td class='tth'>17:40</td></tr><tr><td class='n'>7</td><td class='stop'>노원문화원</td><td class='mwf'>14:13</td><td class='mwf'>15:28</td><td class='mwf'>17:05</td><td class='mwf'>18:45</td><td class='tth'>15:15</td><td class='tth'>17:45</td></tr><tr><td class='n'>8</td><td class='stop'>풍림아파트(건너편정류장)</td><td class='mwf'>14:15</td><td class='mwf'>15:30</td><td class='mwf'>17:07</td><td class='mwf'>18:47</td><td class='tth'>15:17</td><td class='tth'>17:47</td></tr><tr><td class='n'>9</td><td class='stop'>장미아파트 604동</td><td class='mwf'>14:18</td><td class='mwf'>15:31</td><td class='mwf'>17:09</td><td class='mwf'>18:49</td><td class='tth'>15:19</td><td class='tth'>17:49</td></tr><tr class='chg-row'><td class='n'>10</td><td class='stop'>한신청구아파트(후문)</td><td class='mwf chg'>14:15<sup>*</sup></td><td class='mwf'>15:36</td><td class='mwf'>17:13</td><td class='mwf'>18:53</td><td class='tth'>15:23</td><td class='tth'>17:53</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:28</td><td class='mwf'>15:40</td><td class='mwf'>17:20</td><td class='mwf'>19:00</td><td class='tth'>15:30</td><td class='tth'>18:10</td></tr></tbody>
+  </table>
+  <div class="tbl-note"><b>*</b> <b>1코드에 한해</b> 9월부터 임시로 <b>5호차</b>가 커버합니다. (탑승 인원 조정)</div>
+  </div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01077203835">010-7720-3835</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01054142977">010-5414-2977</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01097007836">010-9700-7836</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s3">
+  <div class="car-title"><div><div class="car-num">차량 03</div><div class="car-name">중계 5호차</div></div><div class="car-driver">박용화 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>상수초등학교(아라유치원)</td><td class='mwf'>13:50</td><td class='mwf'>15:10</td><td class='mwf'>16:50</td><td class='mwf'>18:27</td><td class='tth'>15:00</td><td class='tth'>17:30</td></tr><tr><td class='n'>2</td><td class='stop'>상계 주공A 우리은행</td><td class='mwf'>13:55</td><td class='mwf'>15:13</td><td class='mwf'>16:55</td><td class='mwf'>18:32</td><td class='tth'>15:03</td><td class='tth'>17:33</td></tr><tr><td class='n'>3</td><td class='stop'>노원중학교</td><td class='mwf'>14:00</td><td class='mwf'>15:15</td><td class='mwf'>17:00</td><td class='mwf'>18:34</td><td class='tth'>15:05</td><td class='tth'>17:35</td></tr><tr><td class='n'>4</td><td class='stop'>미도아파트(정문건너편)</td><td class='mwf'>14:03</td><td class='mwf'>15:17</td><td class='mwf'>17:03</td><td class='mwf'>18:37</td><td class='tth'>15:07</td><td class='tth'>17:37</td></tr><tr><td class='n'>5</td><td class='stop'>중계 센트럴아파트(테니스장)</td><td class='mwf'>14:06</td><td class='mwf'>15:20</td><td class='mwf'>17:06</td><td class='mwf'>18:38</td><td class='tth'>15:10</td><td class='tth'>17:40</td></tr><tr><td class='n'>6</td><td class='stop'>서울아이티고등학교앞(CU)</td><td class='mwf'>14:08</td><td class='mwf'>15:22</td><td class='mwf'>17:08</td><td class='mwf'>18:40</td><td class='tth'>15:13</td><td class='tth'>17:42</td></tr><tr><td class='n'>7</td><td class='stop'>롯데/경남/상아A(꽃집앞)</td><td class='mwf'>14:10</td><td class='mwf'>15:23</td><td class='mwf'>17:10</td><td class='mwf'>18:43</td><td class='tth'>15:15</td><td class='tth'>17:45</td></tr><tr><td class='n'>8</td><td class='stop'>하계현대우성아파트(건너편 정류장)</td><td class='mwf'>14:12</td><td class='mwf'>15:25</td><td class='mwf'>17:12</td><td class='mwf'>18:44</td><td class='tth'>15:16</td><td class='tth'>17:47</td></tr><tr><td class='n'>9</td><td class='stop'>벽산 상가</td><td class='mwf'>14:13</td><td class='mwf'>15:28</td><td class='mwf'>17:13</td><td class='mwf'>18:46</td><td class='tth'>15:17</td><td class='tth'>17:49</td></tr><tr><td class='n'>10</td><td class='stop'>학여울 청구아파트(후문)</td><td class='mwf'>14:14</td><td class='mwf'>15:29</td><td class='mwf'>17:14</td><td class='mwf'>18:46</td><td class='tth'>15:18</td><td class='tth'>17:49</td></tr><tr><td class='n'>11</td><td class='stop'>학여울 청구아파트(정문)</td><td class='mwf'>14:15</td><td class='mwf'>15:30</td><td class='mwf'>17:15</td><td class='mwf'>18:48</td><td class='tth'>15:20</td><td class='tth'>17:50</td></tr><tr><td class='n'>12</td><td class='stop'>연세유치원(앞)</td><td class='mwf'>14:18</td><td class='mwf'>15:32</td><td class='mwf'>17:18</td><td class='mwf'>18:49</td><td class='tth'>15:21</td><td class='tth'>17:51</td></tr><tr><td class='n'>13</td><td class='stop'>노원우주학교</td><td class='mwf'>14:20</td><td class='mwf'>15:34</td><td class='mwf'>17:20</td><td class='mwf'>18:52</td><td class='tth'>15:22</td><td class='tth'>17:52</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:25</td><td class='mwf'>15:40</td><td class='mwf'>17:25</td><td class='mwf'>19:05</td><td class='tth'>15:35</td><td class='tth'>18:15</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01071330639">010-7133-0639</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01071567317">010-7156-7317</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01047973631">010-4797-3631</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s4">
+  <div class="car-title"><div><div class="car-num">차량 04</div><div class="car-name">중계 6호차</div></div><div class="car-driver">김대현 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>오현초등학교(정문옆)</td><td class='mwf'>14:00</td><td class='mwf'>15:05</td><td class='mwf'>16:45</td><td class='mwf'>18:23</td><td class='tth'>15:03</td><td class='tth'>17:29</td></tr><tr><td class='n'>2</td><td class='stop'>코오롱하늘채A(주차장입구)</td><td class='mwf'>14:03</td><td class='mwf'>15:08</td><td class='mwf'>16:47</td><td class='mwf'>18:25</td><td class='tth'>15:06</td><td class='tth'>17:32</td></tr><tr><td class='n'>3</td><td class='stop'>꿈의숲 아이파크A(703동 앞)</td><td class='mwf'>14:05</td><td class='mwf'>15:10</td><td class='mwf'>16:50</td><td class='mwf'>18:28</td><td class='tth'>15:07</td><td class='tth'>17:33</td></tr><tr><td class='n'>4</td><td class='stop'>꿈의숲 래미안 103동 앞</td><td class='mwf'>14:06</td><td class='mwf'>15:11</td><td class='mwf'>16:51</td><td class='mwf'>18:29</td><td class='tth'>15:08</td><td class='tth'>17:34</td></tr><tr><td class='n'>5</td><td class='stop'>꿈의숲 SK아파트(정문)</td><td class='mwf'>14:14</td><td class='mwf'>15:19</td><td class='mwf'>16:55</td><td class='mwf'>18:34</td><td class='tth'>15:14</td><td class='tth'>17:38</td></tr><tr><td class='n'>6</td><td class='stop'>롯데캐슬(정문 건너편)</td><td class='mwf'>14:17</td><td class='mwf'>15:20</td><td class='mwf'>16:57</td><td class='mwf'>18:37</td><td class='tth'>15:17</td><td class='tth'>17:39</td></tr><tr><td class='n'>7</td><td class='stop'>월계센트럴아이파크(에스오일 주유소앞)</td><td class='mwf'>14:19</td><td class='mwf'>15:22</td><td class='mwf'>17:01</td><td class='mwf'>18:40</td><td class='tth'>15:20</td><td class='tth'>17:40</td></tr><tr><td class='n'>8</td><td class='stop'>월계 헬스케어</td><td class='mwf'>14:20</td><td class='mwf'>15:23</td><td class='mwf'>17:02</td><td class='mwf'>18:42</td><td class='tth'>15:22</td><td class='tth'>17:42</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:30</td><td class='mwf'>15:38</td><td class='mwf'>17:17</td><td class='mwf'>18:55</td><td class='tth'>15:35</td><td class='tth'>18:05</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01031163164">010-3116-3164</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01040052559">010-4005-2559</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01072297102">010-7229-7102</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s5">
+  <div class="car-title"><div><div class="car-num">차량 05</div><div class="car-name">중계 7호차</div></div><div class="car-driver">김주영 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>화랑대 이편한세상</td><td class='mwf'>14:00</td><td class='mwf'>15:18</td><td class='mwf'>16:59</td><td class='mwf'>18:33</td><td class='tth'>15:00</td><td class='tth'>17:30</td></tr><tr><td class='n'>2</td><td class='stop'>태릉 브라운스톤(분수공원)</td><td class='mwf'>14:01</td><td class='mwf'>15:20</td><td class='mwf'>17:00</td><td class='mwf'>18:33</td><td class='tth'>15:00</td><td class='tth'>17:30</td></tr><tr><td class='n'>3</td><td class='stop'>다리앞 (할매복집 앞)</td><td class='mwf'>14:03</td><td class='mwf'>15:22</td><td class='mwf'>17:02</td><td class='mwf'>18:37</td><td class='tth'>15:05</td><td class='tth'>17:34</td></tr><tr><td class='n'>4</td><td class='stop'>공릉 두산아파트</td><td class='mwf'>14:06</td><td class='mwf'>15:25</td><td class='mwf'>17:05</td><td class='mwf'>18:43</td><td class='tth'>15:11</td><td class='tth'>17:40</td></tr><tr><td class='n'>5</td><td class='stop'>화랑약국 앞</td><td class='mwf'>14:08</td><td class='mwf'>15:27</td><td class='mwf'>17:07</td><td class='mwf'>18:45</td><td class='tth'>15:13</td><td class='tth'>17:42</td></tr><tr><td class='n'>6</td><td class='stop'>원자력병원입구(해동부동산)</td><td class='mwf'>14:09</td><td class='mwf'>15:28</td><td class='mwf'>17:08</td><td class='mwf'>18:47</td><td class='tth'>15:15</td><td class='tth'>17:45</td></tr><tr><td class='n'>7</td><td class='stop'>공릉 동부아파트(입구)</td><td class='mwf'>14:12</td><td class='mwf'>15:31</td><td class='mwf'>17:11</td><td class='mwf'>18:49</td><td class='tth'>15:17</td><td class='tth'>17:47</td></tr><tr><td class='n'>8</td><td class='stop'>하계 미성아파트</td><td class='mwf'>14:17</td><td class='mwf'>15:36</td><td class='mwf'>17:16</td><td class='mwf'>18:53</td><td class='tth'>15:21</td><td class='tth'>17:51</td></tr><tr><td class='n'>9</td><td class='stop'>하계 어울림센터</td><td class='mwf'>14:20</td><td class='mwf'>15:38</td><td class='mwf'>17:19</td><td class='mwf'>18:55</td><td class='tth'>15:23</td><td class='tth'>17:53</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:25</td><td class='mwf'>15:43</td><td class='mwf'>17:24</td><td class='mwf'>19:05</td><td class='tth'>15:30</td><td class='tth'>18:05</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01084642737">010-8464-2737</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01093549951">010-9354-9951</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01077147912">010-7714-7912</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s6">
+  <div class="car-title"><div><div class="car-num">차량 06</div><div class="car-name">중계 8호차</div></div><div class="car-driver">한상준 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>선곡초등학교(건너편 GS25)</td><td class='mwf'>13:50</td><td class='mwf'>15:05</td><td class='mwf'>16:45</td><td class='mwf'>18:15</td><td class='tth'>14:55</td><td class='tth'>17:25</td></tr><tr><td class='n'>2</td><td class='stop'>장위3동 주민센터옆 키움센터</td><td class='mwf'>13:55</td><td class='mwf'>15:10</td><td class='mwf'>16:50</td><td class='mwf'>18:20</td><td class='tth'>15:00</td><td class='tth'>17:30</td></tr><tr><td class='n'>3</td><td class='stop'>장위자이레디언트 3단지 303동 앞</td><td class='mwf'>14:00</td><td class='mwf'>15:15</td><td class='mwf'>16:55</td><td class='mwf'>18:25</td><td class='tth'>15:05</td><td class='tth'>17:35</td></tr><tr><td class='n'>4</td><td class='stop'>석계 두산아파트</td><td class='mwf'>14:05</td><td class='mwf'>15:20</td><td class='mwf'>17:00</td><td class='mwf'>18:30</td><td class='tth'>15:10</td><td class='tth'>17:40</td></tr><tr><td class='n'>5</td><td class='stop'>한진그랑빌 114동</td><td class='mwf'>14:10</td><td class='mwf'>15:25</td><td class='mwf'>17:05</td><td class='mwf'>18:35</td><td class='tth'>15:15</td><td class='tth'>17:45</td></tr><tr><td class='n'>6</td><td class='stop'>한진그랑빌A(상가GS25)</td><td class='mwf'>14:10</td><td class='mwf'>15:25</td><td class='mwf'>17:05</td><td class='mwf'>18:35</td><td class='tth'>15:15</td><td class='tth'>17:45</td></tr><tr><td class='n'>7</td><td class='stop'>미성아파트15동 BUS정류장</td><td class='mwf'>14:13</td><td class='mwf'>15:28</td><td class='mwf'>17:08</td><td class='mwf'>18:38</td><td class='tth'>15:18</td><td class='tth'>17:48</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:30</td><td class='mwf'>15:40</td><td class='mwf'>17:20</td><td class='mwf'>19:00</td><td class='tth'>15:30</td><td class='tth'>18:10</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01052881682">010-5288-1682</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01051394021">010-5139-4021</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01042353798">010-4235-3798</a></div></div>
+  </div>
+</div>
+<div class="section" id="dong-s7">
+  <div class="car-title"><div><div class="car-num">차량 07</div><div class="car-name">중계 9호차</div></div><div class="car-driver">김홍영 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr><td class='n'>1</td><td class='stop'>신내 6단지</td><td class='mwf'>14:08</td><td class='mwf'>15:28</td><td class='mwf'>17:08</td><td class='mwf'>18:43</td><td class='tth'>15:13</td><td class='tth'>17:43</td></tr><tr><td class='n'>2</td><td class='stop'>신내 5단지(금성초 건너편)</td><td class='mwf'>14:10</td><td class='mwf'>15:30</td><td class='mwf'>17:10</td><td class='mwf'>18:45</td><td class='tth'>15:15</td><td class='tth'>17:45</td></tr><tr><td class='n'>3</td><td class='stop'>신내 4단지( 406동 횡단보도 건너편)</td><td class='mwf'>14:12</td><td class='mwf'>15:32</td><td class='mwf'>17:12</td><td class='mwf'>18:47</td><td class='tth'>15:17</td><td class='tth'>17:47</td></tr><tr><td class='n'>4</td><td class='stop'>화랑타운(예수사랑교회)</td><td class='mwf'>14:17</td><td class='mwf'>15:37</td><td class='mwf'>17:17</td><td class='mwf'>18:52</td><td class='tth'>15:22</td><td class='tth'>17:52</td></tr><tr><td class='n'>5</td><td class='stop'>비선/공릉APT(601동앞)</td><td class='mwf'>14:18</td><td class='mwf'>15:38</td><td class='mwf'>17:18</td><td class='mwf'>18:53</td><td class='tth'>15:23</td><td class='tth'>17:53</td></tr><tr><td class='n'>6</td><td class='stop'>우방/효성A(입구)</td><td class='mwf'>14:20</td><td class='mwf'>15:40</td><td class='mwf'>17:20</td><td class='mwf'>18:55</td><td class='tth'>15:25</td><td class='tth'>17:55</td></tr><tr class='arr'><td class='n'></td><td class='stop'>학원 도착</td><td class='mwf'>14:25</td><td class='mwf'>15:45</td><td class='mwf'>17:25</td><td class='mwf'>19:05</td><td class='tth'>15:35</td><td class='tth'>18:10</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01091643231">010-9164-3231</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01083630354">010-8363-0354</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01027775289">010-2777-5289</a></div></div>
+  </div>
+</div></div>
+</div>
+
+<div class="dir-panel" id="dir-haw">
+  <div class="tab-bar">
+    <div class="tab-list"><button class='tab on' onclick="go('haw',0)">1호차</button><button class='tab' onclick="go('haw',1)">2호차</button><button class='tab' onclick="go('haw',2)">3호차</button><button class='tab' onclick="go('haw',3)">5호차</button><button class='tab' onclick="go('haw',4)">6호차</button><button class='tab' onclick="go('haw',5)">7호차</button><button class='tab' onclick="go('haw',6)">8호차</button><button class='tab' onclick="go('haw',7)">9호차</button></div>
+  </div>
+  <div class="main">
+<div class="section on" id="haw-s0">
+  <div class="car-title"><div><div class="car-num">차량 00</div><div class="car-name">중계 1호차</div></div><div class="car-driver">김성용 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>14</td><td class='stop'>하계현대 2차아파트</td><td class='mwf'>15:57</td><td class='mwf'>17:37</td><td class='mwf'>19:16</td><td class='mwf'>21:05</td><td class='tth'>18:31</td><td class='tth'>21:05</td></tr><tr><td class='n'>13</td><td class='stop'>롯데우성A(꿈동산어린이집)</td><td class='mwf'>15:58</td><td class='mwf'>17:39</td><td class='mwf'>19:18</td><td class='mwf'>21:06</td><td class='tth'>18:33</td><td class='tth'>21:07</td></tr><tr><td class='n'>12</td><td class='stop'>대림벽산 버스정류장</td><td class='mwf'>16:00</td><td class='mwf'>17:40</td><td class='mwf'>19:20</td><td class='mwf'>21:08</td><td class='tth'>18:36</td><td class='tth'>21:09</td></tr><tr><td class='n'>11</td><td class='stop'>불암고</td><td class='mwf'>16:01</td><td class='mwf'>17:41</td><td class='mwf'>19:21</td><td class='mwf'>21:09</td><td class='tth'>18:38</td><td class='tth'>21:11</td></tr><tr><td class='n'>10</td><td class='stop'>중계어린이집</td><td class='mwf'>16:02</td><td class='mwf'>17:42</td><td class='mwf'>19:22</td><td class='mwf'>21:10</td><td class='tth'>18:39</td><td class='tth'>21:12</td></tr><tr><td class='n'>9</td><td class='stop'>노원문화예술원</td><td class='mwf'>16:03</td><td class='mwf'>17:43</td><td class='mwf'>19:23</td><td class='mwf'>21:11</td><td class='tth'>18:40</td><td class='tth'>21:13</td></tr><tr><td class='n'>8</td><td class='stop'>신안동진A 앞</td><td class='mwf'>16:03</td><td class='mwf'>17:43</td><td class='mwf'>19:23</td><td class='mwf'>21:12</td><td class='tth'>18:41</td><td class='tth'>21:13</td></tr><tr><td class='n'>7</td><td class='stop'>중계 청구3차A</td><td class='mwf'>16:05</td><td class='mwf'>17:45</td><td class='mwf'>19:25</td><td class='mwf'>21:13</td><td class='tth'>18:42</td><td class='tth'>21:15</td></tr><tr><td class='n'>6</td><td class='stop'>우성3차A</td><td class='mwf'>16:07</td><td class='mwf'>17:47</td><td class='mwf'>19:30</td><td class='mwf'>21:15</td><td class='tth'>18:44</td><td class='tth'>21:18</td></tr><tr><td class='n'>5</td><td class='stop'>중계벽산A(재활용센터)</td><td class='mwf'>16:08</td><td class='mwf'>17:48</td><td class='mwf'>19:32</td><td class='mwf'>21:18</td><td class='tth'>18:45</td><td class='tth'>21:20</td></tr><tr><td class='n'>4</td><td class='stop'>중계 염광/현대A 입구</td><td class='mwf'>16:09</td><td class='mwf'>17:49</td><td class='mwf'>19:33</td><td class='mwf'>21:20</td><td class='tth'>18:46</td><td class='tth'>21:21</td></tr><tr><td class='n'>3</td><td class='stop'>수암약국 건너편</td><td class='mwf'>16:12</td><td class='mwf'>17:52</td><td class='mwf'>19:35</td><td class='mwf'>21:21</td><td class='tth'>18:47</td><td class='tth'>21:23</td></tr><tr><td class='n'>2</td><td class='stop'>불암대림아파트 건너편</td><td class='mwf'>16:13</td><td class='mwf'>17:53</td><td class='mwf'>19:37</td><td class='mwf'>21:23</td><td class='tth'>18:48</td><td class='tth'>21:23</td></tr><tr><td class='n'>1</td><td class='stop'>롯데캐슬 시그니처</td><td class='mwf'>16:15</td><td class='mwf'>17:55</td><td class='mwf'>19:40</td><td class='mwf'>21:28</td><td class='tth'>18:50</td><td class='tth'>21:25</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01052301884">010-5230-1884</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01030080498">010-3008-0498</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01033701836">010-3370-1836</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s1">
+  <div class="car-title"><div><div class="car-num">차량 01</div><div class="car-name">중계 2호차</div></div><div class="car-driver">김왕건 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>13</td><td class='stop'>용동초등학교(버스정류장)</td><td class='mwf'>15:55</td><td class='mwf'>17:35</td><td class='mwf'>19:15</td><td class='mwf'>21:05</td><td class='tth'>18:25</td><td class='tth'>21:05</td></tr><tr><td class='n'>12</td><td class='stop'>무지개A(212동옆 횡단보도)</td><td class='mwf'>15:57</td><td class='mwf'>17:37</td><td class='mwf'>19:17</td><td class='mwf'>21:07</td><td class='tth'>18:27</td><td class='tth'>21:07</td></tr><tr><td class='n'>11</td><td class='stop'>청계초등학교(구. 고운유치원)</td><td class='mwf'>15:58</td><td class='mwf'>17:38</td><td class='mwf'>19:18</td><td class='mwf'>21:08</td><td class='tth'>18:28</td><td class='tth'>21:08</td></tr><tr><td class='n'>10</td><td class='stop'>상명초등학교</td><td class='mwf'>16:00</td><td class='mwf'>17:40</td><td class='mwf'>19:20</td><td class='mwf'>21:10</td><td class='tth'>18:30</td><td class='tth'>21:10</td></tr><tr><td class='n'>9</td><td class='stop'>중계성원A(까사미아)</td><td class='mwf'>16:02</td><td class='mwf'>17:42</td><td class='mwf'>19:22</td><td class='mwf'>21:12</td><td class='tth'>18:32</td><td class='tth'>21:12</td></tr><tr><td class='n'>8</td><td class='stop'>양지대림A(201동)</td><td class='mwf'>16:03</td><td class='mwf'>17:43</td><td class='mwf'>19:23</td><td class='mwf'>21:13</td><td class='tth'>18:33</td><td class='tth'>21:13</td></tr><tr><td class='n'>7</td><td class='stop'>코오롱아파트</td><td class='mwf'>16:05</td><td class='mwf'>17:45</td><td class='mwf'>19:25</td><td class='mwf'>21:15</td><td class='tth'>18:35</td><td class='tth'>21:15</td></tr><tr><td class='n'>6</td><td class='stop'>꽃동산교회(맞은편)</td><td class='mwf'>16:07</td><td class='mwf'>17:47</td><td class='mwf'>19:27</td><td class='mwf'>21:17</td><td class='tth'>18:37</td><td class='tth'>21:17</td></tr><tr><td class='n'>5</td><td class='stop'>상곡초등학교</td><td class='mwf'>16:15</td><td class='mwf'>17:55</td><td class='mwf'>19:35</td><td class='mwf'>21:25</td><td class='tth'>18:45</td><td class='tth'>21:25</td></tr><tr><td class='n'>4</td><td class='stop'>온곡초등학교(정문)</td><td class='mwf'>16:19</td><td class='mwf'>17:59</td><td class='mwf'>19:39</td><td class='mwf'>21:29</td><td class='tth'>18:49</td><td class='tth'>21:29</td></tr><tr><td class='n'>3</td><td class='stop'>상원초등학교</td><td class='mwf'>16:21</td><td class='mwf'>18:01</td><td class='mwf'>19:41</td><td class='mwf'>21:31</td><td class='tth'>18:51</td><td class='tth'>21:31</td></tr><tr><td class='n'>2</td><td class='stop'>상계주공 11단지 후문</td><td class='mwf'>16:22</td><td class='mwf'>18:02</td><td class='mwf'>19:42</td><td class='mwf'>21:32</td><td class='tth'>18:52</td><td class='tth'>21:32</td></tr><tr><td class='n'>1</td><td class='stop'>상계주공 11단지 1112동 앞 CU편의점</td><td class='mwf'>16:24</td><td class='mwf'>18:04</td><td class='mwf'>19:44</td><td class='mwf'>21:34</td><td class='tth'>18:54</td><td class='tth'>21:34</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01036363722">010-3636-3722</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01090973168">010-9097-3168</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01054346948">010-5434-6948</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s2">
+  <div class="car-title"><div><div class="car-num">차량 02</div><div class="car-name">중계 3호차</div></div><div class="car-driver">김현국 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr class='chg-row'><td class='n'>10</td><td class='stop'>한신청구아파트(후문)</td><td class='mwf chg'>15:57<sup>*</sup></td><td class='mwf'>17:37</td><td class='mwf'>19:17</td><td class='mwf'>21:07</td><td class='tth'>18:27</td><td class='tth'>21:07</td></tr><tr><td class='n'>9</td><td class='stop'>장미아파트 604동</td><td class='mwf'>16:00</td><td class='mwf'>17:36</td><td class='mwf'>19:19</td><td class='mwf'>21:11</td><td class='tth'>18:31</td><td class='tth'>21:11</td></tr><tr><td class='n'>8</td><td class='stop'>풍림아파트(건너편정류장)</td><td class='mwf'>16:03</td><td class='mwf'>17:38</td><td class='mwf'>19:21</td><td class='mwf'>21:13</td><td class='tth'>18:33</td><td class='tth'>21:13</td></tr><tr><td class='n'>7</td><td class='stop'>공릉문화원</td><td class='mwf'>16:04</td><td class='mwf'>17:40</td><td class='mwf'>19:23</td><td class='mwf'>21:15</td><td class='tth'>18:35</td><td class='tth'>21:15</td></tr><tr><td class='n'>6</td><td class='stop'>공릉역 1번출구(던킨도너츠)</td><td class='mwf'>16:05</td><td class='mwf'>17:43</td><td class='mwf'>19:26</td><td class='mwf'>21:18</td><td class='tth'>18:38</td><td class='tth'>21:18</td></tr><tr><td class='n'>5</td><td class='stop'>태릉역 신한은행</td><td class='mwf'>16:08</td><td class='mwf'>17:46</td><td class='mwf'>19:28</td><td class='mwf'>21:21</td><td class='tth'>18:41</td><td class='tth'>21:21</td></tr><tr><td class='n'>4</td><td class='stop'>태릉입구역(5번출구)</td><td class='mwf'>16:08</td><td class='mwf'>17:46</td><td class='mwf'>19:30</td><td class='mwf'>21:21</td><td class='tth'>18:41</td><td class='tth'>21:21</td></tr><tr><td class='n'>3</td><td class='stop'>먹골역1번출구(던킨)</td><td class='mwf'>16:14</td><td class='mwf'>17:51</td><td class='mwf'>19:37</td><td class='mwf'>21:26</td><td class='tth'>18:46</td><td class='tth'>21:26</td></tr><tr><td class='n'>2</td><td class='stop'>묵동자이아파트(BYC)</td><td class='mwf'>16:16</td><td class='mwf'>17:53</td><td class='mwf'>19:38</td><td class='mwf'>21:28</td><td class='tth'>18:48</td><td class='tth'>21:28</td></tr><tr><td class='n'>1</td><td class='stop'>신안아파트3차(103동 앞)</td><td class='mwf'>16:18</td><td class='mwf'>17:55</td><td class='mwf'>19:40</td><td class='mwf'>21:30</td><td class='tth'>18:50</td><td class='tth'>21:30</td></tr></tbody>
+  </table>
+  <div class="tbl-note"><b>*</b> <b>1코드에 한해</b> 9월부터 임시로 <b>5호차</b>가 커버합니다. (탑승 인원 조정)</div>
+  </div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01077203835">010-7720-3835</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01054142977">010-5414-2977</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01097007836">010-9700-7836</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s3">
+  <div class="car-title"><div><div class="car-num">차량 03</div><div class="car-name">중계 5호차</div></div><div class="car-driver">박용화 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>13</td><td class='stop'>노원우주학교</td><td class='mwf'>15:55</td><td class='mwf'>17:35</td><td class='mwf'>19:15</td><td class='mwf'>21:05</td><td class='tth'>18:25</td><td class='tth'>21:05</td></tr><tr><td class='n'>12</td><td class='stop'>롯데/경남/상아A(꽃집앞)</td><td class='mwf'>15:57</td><td class='mwf'>17:37</td><td class='mwf'>19:17</td><td class='mwf'>21:07</td><td class='tth'>18:27</td><td class='tth'>21:07</td></tr><tr><td class='n'>11</td><td class='stop'>하계현대우성아파트(건너편 정류장)</td><td class='mwf'>15:59</td><td class='mwf'>17:39</td><td class='mwf'>19:19</td><td class='mwf'>21:09</td><td class='tth'>18:29</td><td class='tth'>21:09</td></tr><tr><td class='n'>10</td><td class='stop'>벽상상가</td><td class='mwf'>16:00</td><td class='mwf'>17:40</td><td class='mwf'>19:20</td><td class='mwf'>21:10</td><td class='tth'>18:30</td><td class='tth'>21:10</td></tr><tr><td class='n'>9</td><td class='stop'>학여울 청구아파트(후문)</td><td class='mwf'>16:01</td><td class='mwf'>17:41</td><td class='mwf'>19:21</td><td class='mwf'>21:11</td><td class='tth'>18:31</td><td class='tth'>21:11</td></tr><tr><td class='n'>8</td><td class='stop'>학여울 청구아파트(정문)</td><td class='mwf'>16:02</td><td class='mwf'>17:42</td><td class='mwf'>19:22</td><td class='mwf'>21:12</td><td class='tth'>18:32</td><td class='tth'>21:22</td></tr><tr><td class='n'>7</td><td class='stop'>연세유치원(앞)</td><td class='mwf'>16:05</td><td class='mwf'>17:45</td><td class='mwf'>19:25</td><td class='mwf'>21:15</td><td class='tth'>18:35</td><td class='tth'>21:15</td></tr><tr><td class='n'>6</td><td class='stop'>서울아이티고등학교앞(CU)</td><td class='mwf'>16:10</td><td class='mwf'>17:50</td><td class='mwf'>19:30</td><td class='mwf'>21:20</td><td class='tth'>18:40</td><td class='tth'>21:20</td></tr><tr><td class='n'>5</td><td class='stop'>중계 센트럴아파트(테니스장)</td><td class='mwf'>16:13</td><td class='mwf'>17:53</td><td class='mwf'>19:33</td><td class='mwf'>21:23</td><td class='tth'>18:43</td><td class='tth'>21:23</td></tr><tr><td class='n'>4</td><td class='stop'>미도아파트(정문건너편)</td><td class='mwf'>16:14</td><td class='mwf'>17:54</td><td class='mwf'>19:34</td><td class='mwf'>21:24</td><td class='tth'>18:44</td><td class='tth'>21:24</td></tr><tr><td class='n'>3</td><td class='stop'>노원중학교</td><td class='mwf'>16:16</td><td class='mwf'>17:56</td><td class='mwf'>19:36</td><td class='mwf'>21:26</td><td class='tth'>18:46</td><td class='tth'>21:26</td></tr><tr><td class='n'>2</td><td class='stop'>상계 주공A 우리은행</td><td class='mwf'>16:20</td><td class='mwf'>18:00</td><td class='mwf'>19:40</td><td class='mwf'>21:30</td><td class='tth'>18:50</td><td class='tth'>21:30</td></tr><tr><td class='n'>1</td><td class='stop'>상수초등학교(아라유치원)</td><td class='mwf'>16:25</td><td class='mwf'>18:05</td><td class='mwf'>19:45</td><td class='mwf'>21:35</td><td class='tth'>18:55</td><td class='tth'>21:35</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01071330639">010-7133-0639</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01071567317">010-7156-7317</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01047973631">010-4797-3631</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s4">
+  <div class="car-title"><div><div class="car-num">차량 04</div><div class="car-name">중계 6호차</div></div><div class="car-driver">김대현 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>8</td><td class='stop'>월계 헬스케어</td><td class='mwf'>16:00</td><td class='mwf'>17:40</td><td class='mwf'>19:20</td><td class='mwf'>21:10</td><td class='tth'>18:30</td><td class='tth'>21:10</td></tr><tr><td class='n'>7</td><td class='stop'>월계센트럴아이파크(에스오일 주유소앞)</td><td class='mwf'>16:01</td><td class='mwf'>17:41</td><td class='mwf'>19:21</td><td class='mwf'>21:11</td><td class='tth'>18:31</td><td class='tth'>21:11</td></tr><tr><td class='n'>6</td><td class='stop'>롯데캐슬(정문 건너편)</td><td class='mwf'>16:03</td><td class='mwf'>17:43</td><td class='mwf'>19:23</td><td class='mwf'>21:13</td><td class='tth'>18:33</td><td class='tth'>21:13</td></tr><tr><td class='n'>5</td><td class='stop'>오현초등학교(정문옆)</td><td class='mwf'>16:06</td><td class='mwf'>17:46</td><td class='mwf'>19:26</td><td class='mwf'>21:16</td><td class='tth'>18:36</td><td class='tth'>21:16</td></tr><tr><td class='n'>4</td><td class='stop'>코오롱하늘채A(주차장입구)</td><td class='mwf'>16:09</td><td class='mwf'>17:49</td><td class='mwf'>19:29</td><td class='mwf'>21:19</td><td class='tth'>18:39</td><td class='tth'>21:19</td></tr><tr><td class='n'>3</td><td class='stop'>꿈의숲 아이파크A(703동 앞)</td><td class='mwf'>16:11</td><td class='mwf'>17:51</td><td class='mwf'>19:31</td><td class='mwf'>21:21</td><td class='tth'>18:41</td><td class='tth'>21:21</td></tr><tr><td class='n'>2</td><td class='stop'>꿈의숲 래미안 103동 앞</td><td class='mwf'>16:15</td><td class='mwf'>17:55</td><td class='mwf'>19:35</td><td class='mwf'>21:25</td><td class='tth'>18:45</td><td class='tth'>21:25</td></tr><tr><td class='n'>1</td><td class='stop'>꿈의숲 SK아파트(정문)</td><td class='mwf'>16:20</td><td class='mwf'>18:00</td><td class='mwf'>19:40</td><td class='mwf'>21:30</td><td class='tth'>18:50</td><td class='tth'>21:30</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01031163164">010-3116-3164</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01040052559">010-4005-2559</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01072297102">010-7229-7102</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s5">
+  <div class="car-title"><div><div class="car-num">차량 05</div><div class="car-name">중계 7호차</div></div><div class="car-driver">김주영 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>9</td><td class='stop'>하계 어울림센터</td><td class='mwf'>15:55</td><td class='mwf'>17:35</td><td class='mwf'>19:15</td><td class='mwf'>21:10</td><td class='tth'>18:27</td><td class='tth'>21:12</td></tr><tr><td class='n'>8</td><td class='stop'>하계 미성아파트</td><td class='mwf'>15:58</td><td class='mwf'>17:37</td><td class='mwf'>19:18</td><td class='mwf'>21:12</td><td class='tth'>18:29</td><td class='tth'>21:14</td></tr><tr><td class='n'>7</td><td class='stop'>공릉 동부아파트(입구)</td><td class='mwf'>16:03</td><td class='mwf'>17:42</td><td class='mwf'>19:23</td><td class='mwf'>21:16</td><td class='tth'>18:33</td><td class='tth'>21:18</td></tr><tr><td class='n'>6</td><td class='stop'>원자력병원입구(해동부동산)</td><td class='mwf'>16:06</td><td class='mwf'>17:45</td><td class='mwf'>19:26</td><td class='mwf'>21:18</td><td class='tth'>18:35</td><td class='tth'>21:20</td></tr><tr><td class='n'>5</td><td class='stop'>화랑약국 앞</td><td class='mwf'>16:07</td><td class='mwf'>17:46</td><td class='mwf'>19:27</td><td class='mwf'>21:20</td><td class='tth'>18:37</td><td class='tth'>21:23</td></tr><tr><td class='n'>4</td><td class='stop'>공릉 두산아파트</td><td class='mwf'>16:09</td><td class='mwf'>17:48</td><td class='mwf'>19:29</td><td class='mwf'>21:22</td><td class='tth'>18:39</td><td class='tth'>21:25</td></tr><tr><td class='n'>3</td><td class='stop'>다리앞 (할매복집 앞)</td><td class='mwf'>16:12</td><td class='mwf'>17:51</td><td class='mwf'>19:32</td><td class='mwf'>21:28</td><td class='tth'>18:45</td><td class='tth'>21:31</td></tr><tr><td class='n'>2</td><td class='stop'>태릉 브라운스톤(분수공원)</td><td class='mwf'>16:14</td><td class='mwf'>17:53</td><td class='mwf'>19:34</td><td class='mwf'>21:32</td><td class='tth'>18:50</td><td class='tth'>21:35</td></tr><tr><td class='n'>1</td><td class='stop'>화랑대 이편한세상</td><td class='mwf'>16:15</td><td class='mwf'>17:55</td><td class='mwf'>19:35</td><td class='mwf'>21:32</td><td class='tth'>18:50</td><td class='tth'>21:35</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01084642737">010-8464-2737</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01093549951">010-9354-9951</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01077147912">010-7714-7912</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s6">
+  <div class="car-title"><div><div class="car-num">차량 06</div><div class="car-name">중계 8호차</div></div><div class="car-driver">한상준 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>7</td><td class='stop'>미성아파트15동 BUS정류장</td><td class='mwf'>15:54</td><td class='mwf'>17:34</td><td class='mwf'>19:14</td><td class='mwf'>21:04</td><td class='tth'>18:24</td><td class='tth'>21:04</td></tr><tr><td class='n'>6</td><td class='stop'>한진그랑빌A(상가GS25)</td><td class='mwf'>15:57</td><td class='mwf'>17:37</td><td class='mwf'>19:17</td><td class='mwf'>21:07</td><td class='tth'>18:27</td><td class='tth'>21:07</td></tr><tr><td class='n'>5</td><td class='stop'>한진그랑빌 114동</td><td class='mwf'>15:59</td><td class='mwf'>17:39</td><td class='mwf'>19:19</td><td class='mwf'>21:09</td><td class='tth'>18:29</td><td class='tth'>21:09</td></tr><tr><td class='n'>4</td><td class='stop'>석계 두산아파트</td><td class='mwf'>16:04</td><td class='mwf'>17:44</td><td class='mwf'>19:24</td><td class='mwf'>21:14</td><td class='tth'>18:34</td><td class='tth'>21:14</td></tr><tr><td class='n'>3</td><td class='stop'>장위자이레디언트 3단지 303동</td><td class='mwf'>16:09</td><td class='mwf'>17:49</td><td class='mwf'>19:29</td><td class='mwf'>21:19</td><td class='tth'>18:39</td><td class='tth'>21:19</td></tr><tr><td class='n'>2</td><td class='stop'>장위3동 주민센터옆 키움센터(101동쪽)</td><td class='mwf'>16:11</td><td class='mwf'>17:51</td><td class='mwf'>19:31</td><td class='mwf'>21:21</td><td class='tth'>18:41</td><td class='tth'>21:21</td></tr><tr><td class='n'>1</td><td class='stop'>선곡초등학교</td><td class='mwf'>16:15</td><td class='mwf'>17:55</td><td class='mwf'>19:35</td><td class='mwf'>21:25</td><td class='tth'>18:45</td><td class='tth'>21:25</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01052881682">010-5288-1682</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01051394021">010-5139-4021</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01042353798">010-4235-3798</a></div></div>
+  </div>
+</div>
+<div class="section" id="haw-s7">
+  <div class="car-title"><div><div class="car-num">차량 07</div><div class="car-name">중계 9호차</div></div><div class="car-driver">김홍영 기사님</div></div>
+  <div class="tbl-wrap"><table>
+    <thead>
+      <tr class="gh"><th class="g-stop" colspan="2">정차 지역</th><th class="g-mwf" colspan="4">월 · 수 · 금</th><th class="g-tth" colspan="2">화 · 목</th></tr>
+      <tr class="sh"><th class="s-stop" style="width:26px">번</th><th class="s-stop"></th><th class='s-mwf'>1코드</th><th class='s-mwf'>2코드</th><th class='s-mwf'>3코드</th><th class='s-mwf'>4코드</th><th class='s-tth'>5코드</th><th class='s-tth'>6코드</th></tr>
+    </thead>
+    <tbody><tr class='dep'><td class='n'>출발</td><td class='stop'>학원출발</td><td class='mwf'>15:50</td><td class='mwf'>17:30</td><td class='mwf'>19:10</td><td class='mwf'>21:00</td><td class='tth'>18:20</td><td class='tth'>21:00</td></tr><tr><td class='n'>6</td><td class='stop'>우방/효성A(입구)</td><td class='mwf'>15:55</td><td class='mwf'>17:35</td><td class='mwf'>19:15</td><td class='mwf'>21:10</td><td class='tth'>18:25</td><td class='tth'>21:10</td></tr><tr><td class='n'>5</td><td class='stop'>비선/공릉APT(601동앞)</td><td class='mwf'>15:57</td><td class='mwf'>17:37</td><td class='mwf'>19:17</td><td class='mwf'>21:12</td><td class='tth'>18:27</td><td class='tth'>21:12</td></tr><tr><td class='n'>4</td><td class='stop'>화랑타운(예수사랑교회)</td><td class='mwf'>15:58</td><td class='mwf'>17:38</td><td class='mwf'>19:18</td><td class='mwf'>21:13</td><td class='tth'>18:28</td><td class='tth'>21:14</td></tr><tr><td class='n'>3</td><td class='stop'>신내 4단지( 406동 횡단보도 건너편)</td><td class='mwf'>16:03</td><td class='mwf'>17:43</td><td class='mwf'>19:23</td><td class='mwf'>21:18</td><td class='tth'>18:33</td><td class='tth'>21:19</td></tr><tr><td class='n'>2</td><td class='stop'>신내 5단지(금성초 건너편)</td><td class='mwf'>16:05</td><td class='mwf'>17:45</td><td class='mwf'>19:25</td><td class='mwf'>21:20</td><td class='tth'>18:35</td><td class='tth'>21:21</td></tr><tr><td class='n'>1</td><td class='stop'>신내 6단지</td><td class='mwf'>16:07</td><td class='mwf'>17:47</td><td class='mwf'>19:27</td><td class='mwf'>21:22</td><td class='tth'>18:37</td><td class='tth'>21:23</td></tr></tbody>
+  </table></div>
+  <div class="contacts">
+    <div class="ct"><div class="ct-role d">기사님</div><div class="ct-num"><a href="tel:01091643231">010-9164-3231</a></div></div>
+    <div class="ct"><div class="ct-role m">월수금 선생님</div><div class="ct-num"><a href="tel:01083630354">010-8363-0354</a></div></div>
+    <div class="ct"><div class="ct-role t">화목 선생님</div><div class="ct-num"><a href="tel:01027775289">010-2777-5289</a></div></div>
+  </div>
+</div></div>
+</div>
+
+<div class="footer">중계정상어학원 9월 셔틀 시간표 · 26.08.27 기준 &nbsp;|&nbsp; 문의: 02-973-0097 · 평일 13:00–21:00</div>
+
+<script>
+function go(dir, i){
+  document.querySelectorAll('#dir-'+dir+' .section').forEach((el,j)=>el.classList.toggle('on', i===j));
+  document.querySelectorAll('#dir-'+dir+' .tab').forEach((el,j)=>el.classList.toggle('on', i===j));
+}
+function switchDir(dir){
+  document.querySelectorAll('.dir-panel').forEach(el=>el.classList.toggle('on', el.id==='dir-'+dir));
+  document.querySelectorAll('.dir-btn').forEach((el,i)=>el.classList.toggle('on', (i===0&&dir==='dong')||(i===1&&dir==='haw')));
+  if(!document.querySelector('#dir-'+dir+' .section.on')) go(dir,0);
+}
+['dong','haw'].forEach(d=>{ if(!document.querySelector('#dir-'+d+' .section.on')) go(d,0); });
+</script>
+</body>
+</html>
